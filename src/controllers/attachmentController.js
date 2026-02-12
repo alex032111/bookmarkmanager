@@ -1,4 +1,5 @@
 import db from '../database/db.js';
+import fs from 'fs';
 
 // Get all attachments for a bookmark
 export const getBookmarkAttachments = (req, res) => {
@@ -69,7 +70,6 @@ export const deleteAttachment = (req, res) => {
     db.prepare('DELETE FROM attachments WHERE id = ?').run(id);
     
     // Delete file from filesystem
-    const fs = await import('fs');
     try {
       fs.unlinkSync(attachment.file_path);
     } catch (err) {
@@ -91,9 +91,6 @@ export const getAttachmentFile = (req, res) => {
     if (!attachment) {
       return res.status(404).json({ error: 'Attachment not found' });
     }
-    
-    const fs = require('fs');
-    const path = require('path');
     
     if (!fs.existsSync(attachment.file_path)) {
       return res.status(404).json({ error: 'File not found' });

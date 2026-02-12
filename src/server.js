@@ -5,6 +5,7 @@ import { fileURLToPath } from 'url';
 import bookmarkRoutes from './routes/bookmarkRoutes.js';
 import folderRoutes from './routes/folderRoutes.js';
 import tagRoutes from './routes/tagRoutes.js';
+import attachmentRoutes from './routes/attachmentRoutes.js';
 import { errorHandler, notFound } from './middleware/errorHandler.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -31,6 +32,7 @@ app.use(express.static(path.join(__dirname, '../frontend')));
 app.use('/api/bookmarks', bookmarkRoutes);
 app.use('/api/folders', folderRoutes);
 app.use('/api/tags', tagRoutes);
+app.use('/api/attachments', attachmentRoutes);
 
 // API Info endpoint (moved from / to /api)
 app.get('/api', (req, res) => {
@@ -40,7 +42,8 @@ app.get('/api', (req, res) => {
     endpoints: {
       bookmarks: '/api/bookmarks',
       folders: '/api/folders',
-      tags: '/api/tags'
+      tags: '/api/tags',
+      attachments: '/api/attachments'
     },
     documentation: {
       bookmarks: {
@@ -66,6 +69,12 @@ app.get('/api', (req, res) => {
         'POST /api/tags': 'Create a new tag',
         'PUT /api/tags/:id': 'Update a tag',
         'DELETE /api/tags/:id': 'Delete a tag'
+      },
+      attachments: {
+        'GET /api/attachments/bookmark/:bookmark_id': 'Get all attachments for a bookmark',
+        'POST /api/attachments/bookmark/:bookmark_id': 'Upload an attachment (multipart/form-data)',
+        'GET /api/attachments/:id/file': 'Download/view an attachment file',
+        'DELETE /api/attachments/:id': 'Delete an attachment'
       }
     }
   });

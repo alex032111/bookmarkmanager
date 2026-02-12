@@ -152,9 +152,24 @@ const App = {
             
             const bookmarks = await API.getBookmarks(params);
             UI.renderBookmarks(bookmarks);
+            
+            // Load attachments for each bookmark
+            for (const bookmark of bookmarks) {
+                await this.loadAttachments(bookmark.id);
+            }
         } catch (error) {
             console.error('Error loading bookmarks:', error);
             UI.showToast('Fout bij laden van bookmarks', 'error');
+        }
+    },
+    
+    // Load attachments for a bookmark
+    async loadAttachments(bookmarkId) {
+        try {
+            const attachments = await API.getBookmarkAttachments(bookmarkId);
+            UI.renderAttachments(bookmarkId, attachments);
+        } catch (error) {
+            console.error('Error loading attachments:', error);
         }
     },
     
@@ -316,6 +331,48 @@ const App = {
             } catch (error) {
                 console.error('Error deleting bookmark:', error);
                 UI.showToast('Fout bij verwijderen bookmark', 'error');
+            }
+            
+            UI.showLoading(false);
+        });
+    },
+    
+    // Open attachment upload dialog
+    openAttachmentUpload(bookmarkId, event) {
+        event.stopPropagation();
+        UI.openAttachmentUpload(bookmarkId);
+    },
+    
+    // Upload attachment
+    async uploadAttachment(bookmarkId, file) {
+        UI.showLoading(true);
+        
+        try {
+            await API.uploadAttachment(bookmarkId, file);
+            UI.showToast('Bestand geüpload', 'success');
+            await this.loadAttachments(bookmarkId);
+        } catch (error) {
+            console.error('Error uploading attachment:', error);
+            UI.showToast('Fout bij uploaden bestand', 'error');
+        }
+        
+        UI.showLoading(false);
+    },
+    
+    // Delete attachment
+    async deleteAttachment(attachmentId, bookmarkId, event) {
+        event.stopPropagation();
+        
+        UI.showDeleteConfirm('Weet je zeker dat je dit bestand wilt verwijderen?', async () => {
+            UI.showLoading(true);
+            
+            try {
+                await API.deleteAttachment(attachmentId);
+                UI.showToast('Bestand verwijderd', 'success');
+                await this.loadAttachments(bookmarkId);
+            } catch (error) {
+                console.error('Error deleting attachment:', error);
+                UI.showToast('Fout bij verwijderen bestand', 'error');
             }
             
             UI.showLoading(false);

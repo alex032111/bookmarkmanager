@@ -15,8 +15,8 @@ COPY src ./src
 # Copy frontend files
 COPY frontend ./frontend
 
-# Create data directory
-RUN mkdir -p /app/data
+# Create data and uploads directories
+RUN mkdir -p /app/data /app/uploads
 
 # Expose port
 EXPOSE 3000

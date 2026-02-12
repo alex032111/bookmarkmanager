@@ -4,6 +4,9 @@ node_modules/
 # Database
 data/
 
+# File uploads
+uploads/
+
 # Environment variables
 .env
 .env.local

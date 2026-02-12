@@ -69,7 +69,15 @@ const UI = {
                 </div>
                 ${bookmark.description ? `<p class="bookmark-description" title="${this.escapeHtml(bookmark.description)}">${this.escapeHtml(bookmark.description)}</p>` : ''}
                 ${tagsHtml ? `<div class="bookmark-tags">${tagsHtml}</div>` : ''}
+                <div class="bookmark-attachments" id="attachments-${bookmark.id}"></div>
                 <div class="bookmark-actions">
+                    <button class="bookmark-action-btn upload" onclick="App.openAttachmentUpload(${bookmark.id}, event)" title="Bestand toevoegen">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                            <polyline points="17 8 12 3 7 8"/>
+                            <line x1="12" y1="3" x2="12" y2="15"/>
+                        </svg>
+                    </button>
                     <button class="bookmark-action-btn favorite ${bookmark.is_favorite ? 'active' : ''}" 
                             onclick="UI.toggleFavorite(${bookmark.id}, event)" 
                             title="${bookmark.is_favorite ? 'Verwijder uit favorieten' : 'Toevoegen aan favorieten'}">
@@ -91,6 +99,66 @@ const UI = {
                 </div>
             </div>
         `;
+    },
+    
+    // Render attachments for a bookmark
+    renderAttachments(bookmarkId, attachments) {
+        const container = document.getElementById(`attachments-${bookmarkId}`);
+        if (!container || attachments.length === 0) {
+            if (container) container.innerHTML = '';
+            return;
+        }
+        
+        const isImage = (fileType) => fileType && fileType.startsWith('image/');
+        
+        const attachmentsHtml = attachments.map(attachment => {
+            if (isImage(attachment.file_type)) {
+                return `
+                    <div class="attachment-preview" onclick="UI.openAttachment(${attachment.id})">
+                        <img src="${API.getAttachmentUrl(attachment.id)}" alt="${this.escapeHtml(attachment.original_name)}" loading="lazy">
+                        <button class="attachment-delete" onclick="App.deleteAttachment(${attachment.id}, ${bookmarkId}, event)" title="Verwijderen">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="18" y1="6" x2="6" y2="18"/>
+                                <line x1="6" y1="6" x2="18" y2="18"/>
+                            </svg>
+                        </button>
+                    </div>
+                `;
+            } else {
+                return `
+                    <div class="attachment-preview file-preview" onclick="UI.openAttachment(${attachment.id})">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/>
+                            <polyline points="13 2 13 9 20 9"/>
+                        </svg>
+                        <span>${this.escapeHtml(attachment.original_name)}</span>
+                        <button class="attachment-delete" onclick="App.deleteAttachment(${attachment.id}, ${bookmarkId}, event)" title="Verwijderen">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="18" y1="6" x2="6" y2="18"/>
+                                <line x1="6" y1="6" x2="18" y2="18"/>
+                            </svg>
+                        </button>
+                    </div>
+                `;
+            }
+        }).join('');
+        
+        container.innerHTML = `
+            <div class="attachments-title">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/>
+                </svg>
+                Bijlages (${attachments.length})
+            </div>
+            <div class="attachments-list">
+                ${attachmentsHtml}
+            </div>
+        `;
+    },
+    
+    // Open attachment in new tab
+    openAttachment(attachmentId) {
+        window.open(API.getAttachmentUrl(attachmentId), '_blank');
     },
     
     // Render folders list
@@ -158,6 +226,19 @@ const UI = {
         }
         
         modal.style.display = 'flex';
+    },
+    
+    // Open file upload modal
+    openAttachmentUpload(bookmarkId) {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = 'image/*,.pdf,.txt,.doc,.docx,.xls,.xlsx,.zip';
+        input.onchange = async (e) => {
+            if (e.target.files.length > 0) {
+                await App.uploadAttachment(bookmarkId, e.target.files[0]);
+            }
+        };
+        input.click();
     },
     
     // Update folder modal

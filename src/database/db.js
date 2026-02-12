@@ -75,11 +75,27 @@ function initializeDatabase() {
     )
   `);
 
+  // Create attachments table
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS attachments (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      bookmark_id INTEGER NOT NULL,
+      filename TEXT NOT NULL,
+      original_name TEXT NOT NULL,
+      file_type TEXT NOT NULL,
+      file_size INTEGER NOT NULL,
+      file_path TEXT NOT NULL,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (bookmark_id) REFERENCES bookmarks(id) ON DELETE CASCADE
+    )
+  `);
+
   // Create indexes for better performance
   db.exec(`
     CREATE INDEX IF NOT EXISTS idx_bookmarks_folder_id ON bookmarks(folder_id);
     CREATE INDEX IF NOT EXISTS idx_bookmarks_favorite ON bookmarks(is_favorite);
     CREATE INDEX IF NOT EXISTS idx_bookmarks_created ON bookmarks(created_at);
+    CREATE INDEX IF NOT EXISTS idx_attachments_bookmark_id ON attachments(bookmark_id);
   `);
 
   console.log('Database initialized successfully');

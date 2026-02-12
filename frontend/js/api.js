@@ -55,6 +55,29 @@ const API = {
         });
     },
     
+    // POST request with multipart/form-data (for file uploads)
+    async upload(endpoint, formData) {
+        const url = `${this.baseUrl}${endpoint}`;
+        
+        try {
+            const response = await fetch(url, {
+                method: 'POST',
+                body: formData,
+            });
+            
+            const data = await response.json();
+            
+            if (!response.ok) {
+                throw new Error(data.error || `HTTP ${response.status}`);
+            }
+            
+            return data;
+        } catch (error) {
+            console.error('API Error:', error);
+            throw error;
+        }
+    },
+    
     // PUT request
     async put(endpoint, data) {
         return this.request(endpoint, {
@@ -143,6 +166,25 @@ const API = {
     
     async deleteTag(id) {
         return this.delete(`/api/tags/${id}`);
+    },
+    
+    // Attachments
+    async getBookmarkAttachments(bookmarkId) {
+        return this.get(`/api/attachments/bookmark/${bookmarkId}`);
+    },
+    
+    async uploadAttachment(bookmarkId, file) {
+        const formData = new FormData();
+        formData.append('file', file);
+        return this.upload(`/api/attachments/bookmark/${bookmarkId}`, formData);
+    },
+    
+    async deleteAttachment(id) {
+        return this.delete(`/api/attachments/${id}`);
+    },
+    
+    getAttachmentUrl(id) {
+        return `${this.baseUrl}/api/attachments/${id}/file`;
     },
     
     // Health check

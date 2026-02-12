@@ -1,4 +1,3 @@
-# Use official Node.js image
 FROM node:20-alpine
 
 # Set working directory
@@ -8,19 +7,23 @@ WORKDIR /app
 COPY package*.json ./
 
 # Install dependencies
-RUN npm install --production
+RUN npm ci --production
 
-# Copy application files
+# Copy backend source
 COPY src ./src
 
-# Create data directory for database
+# Copy frontend files
+COPY frontend ./frontend
+
+# Create data directory
 RUN mkdir -p /app/data
 
 # Expose port
 EXPOSE 3000
 
-# Set environment to production
-ENV NODE_ENV=production
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+  CMD wget --quiet --tries=1 --spider http://localhost:3000/health || exit 1
 
-# Start the application
+# Start server
 CMD ["npm", "start"]

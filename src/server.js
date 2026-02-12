@@ -32,8 +32,8 @@ app.use('/api/bookmarks', bookmarkRoutes);
 app.use('/api/folders', folderRoutes);
 app.use('/api/tags', tagRoutes);
 
-// Root endpoint
-app.get('/', (req, res) => {
+// API Info endpoint (moved from / to /api)
+app.get('/api', (req, res) => {
   res.json({
     name: 'OpenClaw Bookmark Manager API',
     version: '1.0.0',
@@ -76,6 +76,11 @@ app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
+// SPA fallback - serve index.html for non-API routes
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, '../frontend/index.html'));
+});
+
 // Error handling
 app.use(notFound);
 app.use(errorHandler);
@@ -86,7 +91,7 @@ app.listen(PORT, () => {
   console.log('║     OpenClaw Bookmark Manager API Server         ║');
   console.log('╚════════════════════════════════════════════════════╝');
   console.log(`\n🚀 Server running at http://localhost:${PORT}`);
-  console.log(`📚 API Documentation at http://localhost:${PORT}/`);
+  console.log(`📚 API Documentation at http://localhost:${PORT}/api`);
   console.log(`💚 Health check at http://localhost:${PORT}/health\n`);
 });
 
